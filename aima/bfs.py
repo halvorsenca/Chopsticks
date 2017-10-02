@@ -1,3 +1,6 @@
+from aima.node import Node
+from aima.utils import FIFOQueue
+
 def breadth_first_search(problem):
     """[Figure 3.11]"""
     node = Node(problem.initial)
