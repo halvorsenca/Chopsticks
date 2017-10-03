@@ -93,7 +93,7 @@ def main(num_hands, num_fingers, search_type):
     # Define our initial state to be a dictionary:
     initial_state = {'human': (1,1), 'cpu': (1, 1), 'turn': 'h'}
     # Define our desired goal state to be a human victory:
-    desired_goal_state = {'human': (0, 0)}
+    desired_goal_state = {'cpu': (0, 0)}
     # Define an instance of the problem:
     problem = ChopsticksProblem(initial_state=initial_state, goal_state=desired_goal_state)
     # Solve the problem:
