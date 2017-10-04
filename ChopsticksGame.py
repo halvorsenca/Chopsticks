@@ -31,10 +31,9 @@ class ChopsticksGame(Game):
         """
         actions: Returns a list of allowable moves given the current state.
         :param state: The state of the game.
-        :return possible_actions: A list of performable actions of the form TODO: detail.
+        :return possible_actions: A list of performable actions of the form (from_hand: L or R, to_hand: L or R).
         """
-        possible_actions = []
-        raise NotImplementedError
+        return state.moves
 
     def result(self, state, move):
         """
