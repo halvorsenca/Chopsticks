@@ -61,3 +61,24 @@ class ChopsticksGame(Game):
         :return:
         """
         raise NotImplementedError
+
+    def display(self, state):
+        if isinstance(state, GameState):
+            human_readable_moves = []
+            for i, j in state.moves:
+                from_hand = None
+                to_hand = None
+                if i == 0:
+                    from_hand = 'L'
+                else:
+                    from_hand = 'R'
+                if j == 0:
+                    to_hand = 'L'
+                else:
+                    to_hand = 'R'
+                human_readable_moves.append((from_hand, to_hand))
+            game_state = 'to_move=%s, utility=%d, board=%s, moves of form (from_my, to_opponent)=%s' \
+                         % (state.to_move, state.utility, state.board, human_readable_moves)
+            print(game_state)
+        else:
+            super().display(state=state)
