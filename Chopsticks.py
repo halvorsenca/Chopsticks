@@ -13,7 +13,9 @@ __version__ = "10/2/2017"
 
 def main(num_hands, num_fingers):
     """
-    TODO: method header.
+    main: Plays the chopsticks game with the provided number of hands and fingers.
+    :param num_hands: The number of hands the players have.
+    :param num_fingers: The number of fingers the players have.
     :return:
     """
     # Initialize the game by creating an instance of the ChopsticksGame inherited from the Game class:
