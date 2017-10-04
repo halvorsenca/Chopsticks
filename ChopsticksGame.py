@@ -33,24 +33,25 @@ class ChopsticksGame(Game):
         :param state: The state of the game.
         :return possible_actions: A list of performable actions of the form (from_hand: L or R, to_hand: L or R).
         """
-        f_hands = 0
-        t_hands = 0
+        f_hands = []
+        t_hands = []
         if state.to_move == 'h':
             for i in range(len(state.board['human'])):
                 if state.board['human'][i] == 0:
-                    f_hands += 1
+                    f_hands.append(i)
             for j in range(len(state.board['cpu'])):
                 if state.board['cpu'][j] == 0:
-                    t_hands += 1
+                    t_hands.append(j)
         else:
             for i in range(len(state.board['human'])):
                 if state.board['human'][i] == 0:
-                    t_hands += 1
+                    t_hands.append(i)
             for j in range(len(state.board['cpu'])):
                 if state.board['cpu'][j] == 0:
-                    f_hands += 1
-        return [(from_hand, to_hand) for from_hand in range(0, f_hands) for to_hand in range(0, t_hands)]
+                    f_hands.append(j)
 
+        state.move = [(from_hand, to_hand) for from_hand in f_hands for to_hand in t_hands]
+        return state.move
 
     def result(self, state, move):
         """
