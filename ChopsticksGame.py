@@ -6,6 +6,7 @@ test instead of a path cost and a goal test.
 from aima.utils import *
 from aima.games import Game
 from aima.games import GameState
+from copy import deepcopy
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -35,6 +36,18 @@ class ChopsticksGame(Game):
         """
         return state.moves
 
+    def calculate_utility(self, initial_state, resultant_state):
+        """
+        calculate_utility: Helper method for result, calculates the utility of a move given the state and desired
+            move.
+        :param initial_state: The initial gamestate.
+        :param resultant_state: The resulting gamestate.
+        :param move: The desired move.
+        :return utility: The utility of the resultant gamestate.
+        """
+        """If 'X' wins with this move, return 1; if 'O' wins return -1; else return 0."""
+        raise NotImplementedError
+
     def result(self, state, move):
         """
         result: Returns the state that results from making a move in the provided state.
@@ -42,7 +55,20 @@ class ChopsticksGame(Game):
         :param move: The move performed in the initial state.
         :return resultant_state: The state resulting from the given move.
         """
-        raise NotImplementedError
+        resultant_state = deepcopy(state)
+        if state.to_move == 'h':
+            # It is the human's turn to move:
+            for from_hand, to_hand in move:
+                resultant_state.board['cpu'][to_hand] = (resultant_state.board['cpu'][to_hand]
+                                                         + (resultant_state.board['human'][from_hand] % 5))
+        else:
+            # It is the computer's turn to move:
+            for from_hand, to_hand in move:
+                resultant_state.board['human'][to_hand] += (resultant_state.board['human'][to_hand]
+                                                            + (resultant_state.board['cpu'][from_hand] % 5))
+        resultant_state.moves = self.actions(resultant_state)
+        resultant_state.utility = self.calculate_utility(state, resultant_state)
+        return resultant_state
 
     def utility(self, state, player):
         """
