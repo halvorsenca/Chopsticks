@@ -64,7 +64,7 @@ class ChopsticksGame(Game):
         else:
             # It is the computer's turn to move:
             for from_hand, to_hand in move:
-                resultant_state.board['human'][to_hand] += ((resultant_state.board['human'][to_hand]
+                resultant_state.board['human'][to_hand] = ((resultant_state.board['human'][to_hand]
                                                             + resultant_state.board['cpu'][from_hand]) % 5)
         resultant_state.moves = self.actions(resultant_state)
         resultant_state.utility = self.calculate_utility(state, resultant_state)
