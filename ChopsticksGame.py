@@ -95,6 +95,7 @@ class ChopsticksGame(Game):
         :param player:
         :return:
         """
+        #return soemthing for if there eis a tie
         raise NotImplementedError
 
     def terminal_test(self, state):
@@ -103,7 +104,14 @@ class ChopsticksGame(Game):
         :param state:
         :return:
         """
-        raise NotImplementedError
+
+        if state.board['human'] == (0,0) or state.board['cpu'] == (0,0):
+            return True
+        elif state.board['human'] == (0,0,0) or state.board['cpu'] == (0,0,0):
+            return True
+        else:
+            return False
+
 
     def display(self, state):
         if isinstance(state, GameState):
