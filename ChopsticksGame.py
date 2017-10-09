@@ -96,7 +96,23 @@ class ChopsticksGame(Game):
         :return:
         """
         #return soemthing for if there eis a tie
-        raise NotImplementedError
+
+        human_sum = sum(list(state.board['human']))
+        cpu_sum = sum(list(state.board['cpu']))
+
+        if human_sum == 0:
+            if state.to_move == 'h':
+                return -1
+            else:
+                return 1
+
+        elif cpu_sum == 0:
+            if state.to_move == 'c':
+                return -1
+            else:
+                return 1
+
+        return 0
 
     def terminal_test(self, state):
         """
@@ -105,9 +121,10 @@ class ChopsticksGame(Game):
         :return:
         """
 
-        if state.board['human'] == (0,0) or state.board['cpu'] == (0,0):
-            return True
-        elif state.board['human'] == (0,0,0) or state.board['cpu'] == (0,0,0):
+        human_sum = sum(list(state.board['human']))
+        cpu_sum = sum(list(state.board['cpu']))
+
+        if human_sum == 0 or cpu_sum == 0:
             return True
         else:
             return False
