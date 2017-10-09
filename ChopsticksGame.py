@@ -222,7 +222,21 @@ class ChopsticksGame(Game):
         :param state:
         :return:
         """
-        raise NotImplementedError
+
+        #if we have been there before it would be a terminal and would utility to 0
+
+        human_sum = sum(list(state.board['human']))
+        cpu_sum = sum(list(state.board['cpu']))
+
+        #if there is a tie with the 2,4 setup between the two players
+        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
+            return True
+
+        #if either of the tuples is a 0 meaning the end of the game with a winner
+        if human_sum == 0 or cpu_sum == 0:
+            return True
+        else:
+            return False
 
     def display(self, state):
         if isinstance(state, GameState):
