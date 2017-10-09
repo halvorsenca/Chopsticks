@@ -125,3 +125,26 @@ class ChopsticksGame(Game):
             print(game_state)
         else:
             super().display(state=state)
+
+    def min_max_decision(self, state):
+        move_to_make = []
+        actions = self.actions(state)
+        for a in actions:
+            move_to_make.append(self.min_value(self.result(state, a)))
+        return actions[move_to_make.index(max(move_to_make))]
+
+    def max_value(self, state):
+        if self.terminal_test(state):
+            return self.utility(state)
+        v = float("-inf")
+        for a in self.actions(state):
+            v = max(v, self.min_value(self.result(state, a)))
+        return v
+
+    def min_value(self, state):
+        if self.terminal_test(state):
+            return self.utility(state)
+        v = float("inf")
+        for a in self.actions(state):
+            v = min(v, self.max_value(self.result(state, a)))
+        return v
