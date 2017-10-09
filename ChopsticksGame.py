@@ -117,7 +117,7 @@ class ChopsticksGame(Game):
 
     def max_value(self, state):
         if self.terminal_test(state):
-            return self.utility(state, state.game_state.to_move)
+            return self.utility(state, state.to_move)
         v = float("-inf")
         for a in self.actions(state):
             v = max(v, self.min_value(self.result(state, a)))
@@ -125,7 +125,7 @@ class ChopsticksGame(Game):
 
     def min_value(self, state):
         if self.terminal_test(state):
-            return self.utility(state, state.game_state.to_move)
+            return self.utility(state, state.to_move)
         v = float("inf")
         for a in self.actions(state):
             v = min(v, self.max_value(self.result(state, a)))
