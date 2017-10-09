@@ -195,7 +195,26 @@ class ChopsticksGame(Game):
         :param player:
         :return:
         """
-        raise NotImplementedError
+        if state.to_move == 'h' and player == 'h':
+            if state.board['cpu'] == (0, 0) or state.board['cpu'] == (0,0,0):
+                return 1
+            else:
+                return 0
+        elif state.to_move == 'c' and player == 'h':
+            if state.board['human'] == (0, 0) or state.board['human'] == (0, 0, 0):
+                return -1
+            else:
+                return 0
+        elif state.to_move == 'h' and player == 'c':
+            if state.board['cpu'] == (0, 0) or state.board['cpu'] == (0, 0, 0):
+                return -1
+            else:
+                return 0
+        elif state.to_move == 'c' and player == 'c':
+            if state.board['human'] == (0, 0) or state.board['human'] == (0, 0, 0):
+                return 1
+            else:
+                return 0
 
     def terminal_test(self, state):
         """
