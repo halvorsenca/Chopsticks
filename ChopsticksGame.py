@@ -108,25 +108,25 @@ class ChopsticksGame(Game):
         else:
             super().display(state=state)
 
-    # not sure how to write the arg max of a an element of actions
     def min_max_decision(self, state):
-        return max(self.min_value(self.result(state, a)))
+        move_to_make = []
+        actions = self.actions(state)
+        for a in actions:
+            move_to_make.append(self.min_value(self.result(state, a)))
+        return actions[move_to_make.index(max(move_to_make))]
 
-    # not sure if s if suppose to be the state or not
-    # also if we need to make a function for min and max or if it means use an existing one
-    # our utility wants a player, but the sudo code doesn't want one
     def max_value(self, state):
         if self.terminal_test(state):
-            return self.utility(state, player)
+            return self.utility(state, state.game_state.to_move)
         v = float("-inf")
         for a in self.actions(state):
-            v = max(v, self.min_value(self.result(s, a)))
+            v = max(v, self.min_value(self.result(state, a)))
         return v
 
     def min_value(self, state):
         if self.terminal_test(state):
-            return self.utility(state, player)
+            return self.utility(state, state.game_state.to_move)
         v = float("inf")
         for a in self.actions(state):
-            v = min(v, self.max_value(self.result(s, a)))
+            v = min(v, self.max_value(self.result(state, a)))
         return v
