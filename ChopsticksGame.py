@@ -97,22 +97,29 @@ class ChopsticksGame(Game):
         """
         #return soemthing for if there eis a tie
 
+
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
 
         if human_sum == 0:
-            if state.to_move == 'h':
+            if state.to_move == 'h' and player == 'h':
                 return -1
             else:
                 return 1
 
         elif cpu_sum == 0:
-            if state.to_move == 'c':
+            if state.to_move == 'c' and player == 'c':
                 return -1
             else:
                 return 1
 
+        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
+            return 0
+
         return 0
+
+
+
 
     def terminal_test(self, state):
         """
@@ -121,13 +128,22 @@ class ChopsticksGame(Game):
         :return:
         """
 
+        #if we have been there before it would be a terminal and would utility to 0
+
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
 
+        #if there is a tie with the 2,4 setup between the two players
+        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
+            return True
+
+        #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
             return True
         else:
             return False
+
+
 
 
     def display(self, state):
