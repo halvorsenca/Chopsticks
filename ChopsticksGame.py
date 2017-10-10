@@ -98,6 +98,7 @@ class ChopsticksGame(Game):
         #return soemthing for if there eis a tie
 
 
+
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
 
@@ -112,8 +113,9 @@ class ChopsticksGame(Game):
                 return -1
             else:
                 return 1
-
-        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
+            
+        #if there is a tie between the human and computer (meaning an infinite loop of a four and two then return a 0 for utility since there is no way to win there)
+        if (state.board['human'] == tuple(2, 4) or state.board['human'] == tuple(4, 2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
             return 0
 
         return 0
