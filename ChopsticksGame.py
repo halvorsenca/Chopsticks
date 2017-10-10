@@ -26,7 +26,7 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = GameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves)
+        self.initial = GameState(to_move='c', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves)
 
     def actions(self, state):
         """
@@ -34,25 +34,7 @@ class ChopsticksGame(Game):
         :param state: The state of the game.
         :return possible_actions: A list of performable actions of the form (from_hand: L or R, to_hand: L or R).
         """
-        f_hands = []
-        t_hands = []
-        if state.to_move == 'h':
-            for i in range(len(state.board['human'])):
-                if state.board['human'][i] == 0:
-                    f_hands.append(i)
-            for j in range(len(state.board['cpu'])):
-                if state.board['cpu'][j] == 0:
-                    t_hands.append(j)
-        else:
-            for i in range(len(state.board['human'])):
-                if state.board['human'][i] == 0:
-                    t_hands.append(i)
-            for j in range(len(state.board['cpu'])):
-                if state.board['cpu'][j] == 0:
-                    f_hands.append(j)
-
-        state.move = [(from_hand, to_hand) for from_hand in f_hands for to_hand in t_hands]
-        return state.move
+        return self.compute_moves(player=state.to_move, game_board=state.board)
 
     def update_game_board(self, state, move):
         """
@@ -93,7 +75,7 @@ class ChopsticksGame(Game):
                     temp_human_hand[hand] = human_updated_to_hand
             # Now that the appropriate hand has been updated, type cast back to a tuple and we are done:
             resultant_game_board['human'] = tuple(temp_human_hand)
-            resultant_game_board['cpu'] = state.board['cpu'].copy()
+            resultant_game_board['cpu'] = tuple(state.board['cpu'])
         return resultant_game_board
 
     def compute_utility(self, game_board, move, player):
@@ -170,6 +152,10 @@ class ChopsticksGame(Game):
         :param move: The move performed in the initial state of the form: (from_hand, to_hand)
         :return resultant_state: The GameState resulting from the given move.
         """
+        # Check to see if the move is invalid (e.g. human player input incapable move)
+        if move not in self.compute_moves(player=state.to_move,game_board=state.board):
+            # An invalid move results in no change to the game state:
+            return state
         # Update the to_move field appropriately:
         # After this function is done executing, it will be the other players turn:
         updated_to_move = None
@@ -229,8 +215,7 @@ class ChopsticksGame(Game):
         cpu_sum = sum(list(state.board['cpu']))
 
         #if there is a tie with the 2,4 setup between the two players
-        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
-            return True
+        # TODO: Implement tie when state has already been added to explored.
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
