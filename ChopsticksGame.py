@@ -34,7 +34,29 @@ class ChopsticksGame(Game):
         :param state: The state of the game.
         :return possible_actions: A list of performable actions of the form (from_hand: L or R, to_hand: L or R).
         """
-        return self.compute_moves(player=state.to_move, game_board=state.board)
+        actions = []
+        game_board = state.board
+        if state.to_move == 'h':
+            # It is the human who wants to know possible actions.
+            for human_hand, human_num_fingers in enumerate(game_board['human']):
+                from_hand = human_hand
+                # Determine which of the opponents hands you can interact with:
+                for cpu_hand, cpu_num_fingers in enumerate(game_board['cpu']):
+                    to_hand = cpu_hand
+                    if human_num_fingers > 0 and cpu_num_fingers > 0:
+                        # You can only execute a move if your hand is not out and your opponent's hand is not out.
+                        actions.append((from_hand, to_hand))
+        else:
+            # It is the computer who wants to know possible actions.
+            for cpu_hand, cpu_num_fingers in enumerate(game_board['cpu']):
+                from_hand = cpu_hand
+                # Determine which of the opponents hands you can interact with:
+                for human_hand, human_num_fingers in enumerate(game_board['human']):
+                    to_hand = human_hand
+                    if cpu_num_fingers > 0 and human_num_fingers > 0:
+                        # You can only execute a move if your hand is not out and your opponent's  hand is not out.
+                        actions.append((from_hand, to_hand))
+        return actions
 
     def update_game_board(self, state, move):
         """
@@ -78,73 +100,6 @@ class ChopsticksGame(Game):
             resultant_game_board['cpu'] = tuple(state.board['cpu'])
         return resultant_game_board
 
-    def compute_utility(self, game_board, move, player):
-        """
-        calculate_utility: Helper method for result; same as AIMA implementation. Calculates the utility given the
-            below parameters. Returns 0 regardless of the player if the result is a tie. Returns the utility as a win
-            or a loss dependent upon who is asking for the utility (the player parameter).
-        :param game_board: The gameboard after executing the specified move.
-        :param move: The move made to produce the current gameboard.
-        :param player The player performing the utility calculation.
-        :return utility: The utility of the state resulting from the provided game_board when the provided move is
-            applied; as viewed from the perspective of the provided player.
-        """
-        human_sum = sum(list(game_board['human']))
-        cpu_sum = sum(list(game_board['cpu']))
-
-        if human_sum == 0:
-            # The human has no fingers left.
-            if player == 'h':
-                # The agent requesting the utility calculation is the human.
-                return -1
-            else:
-                # The agent requesting the utility calculation is the cpu.
-                return 1
-        elif cpu_sum == 0:
-            # The cpu has no fingers left.
-            if player == 'h':
-                # The agent requesting the utility calculation is the human.
-                return 1
-            else:
-                # The agent requesting the utility calculation is the cpu.
-                return -1
-        else:
-            # The utility of the state is unknown or a tie.
-            return 0
-
-    def compute_moves(self, player, game_board):
-        """
-        compute_moves: Helper method for a partial GameState in the instantiation process via self.resultant_state().
-            Returns a list of allowable moves given all relevant GameState parameters. Note that the GameState itself
-            has not been supplied because this method is used to generate the allowable moves in a GameState which is
-            to be constructed pending this method's execution.
-        :param player: The player for whom possible moves should be computed.
-        :param game_board: The gameboard from which possible moves should be computed.
-        :return moves: A list of performable actions of the form (from_hand: L or R, to_hand: L or R).
-        """
-        moves = []
-        if player == 'h':
-            # It is the human who wants to know possible moves.
-            for human_hand, human_num_fingers in enumerate(game_board['human']):
-                from_hand = human_hand
-                # Determine which of the opponents hands you can interact with:
-                for cpu_hand, cpu_num_fingers in enumerate(game_board['cpu']):
-                    to_hand = cpu_hand
-                    if human_num_fingers > 0 and cpu_num_fingers > 0:
-                        # You can only execute a move if your hand is not out and your opponent's hand is not out.
-                        moves.append((from_hand, to_hand))
-        else:
-            # It is the computer who wants to know possible moves.
-            for cpu_hand, cpu_num_fingers in enumerate(game_board['cpu']):
-                from_hand = cpu_hand
-                # Determine which of the opponents hands you can interact with:
-                for human_hand, human_num_fingers in enumerate(game_board['human']):
-                    to_hand = human_hand
-                    if cpu_num_fingers > 0 and human_num_fingers > 0:
-                        # You can only execute a move if your hand is not out and your opponent's  hand is not out.
-                        moves.append((from_hand, to_hand))
-        return moves
-
     def result(self, state, move):
         """
         result: Returns the state that results from making a move in the provided state.
@@ -153,7 +108,8 @@ class ChopsticksGame(Game):
         :return resultant_state: The GameState resulting from the given move.
         """
         # Check to see if the move is invalid (e.g. human player input incapable move)
-        if move not in self.compute_moves(player=state.to_move,game_board=state.board):
+        if move not in self.actions(state=GameState(to_move=state.to_move, board=state.board,
+                                                    utility=state.utility, moves=state.to_move)):
             # An invalid move results in no change to the game state:
             return state
         # Update the to_move field appropriately:
@@ -165,10 +121,14 @@ class ChopsticksGame(Game):
             updated_to_move = 'h'
         # Update the gameboard appropriately:
         updated_board = self.update_game_board(state=state, move=move)
-        # Update the utility using the new board obtained by the specified move according to player who executed it:
-        updated_utility = self.compute_utility(game_board=updated_board, move=move, player=state.to_move)
         # Determine which moves are possible in the new state from the new players perspective:
-        updated_moves = self.compute_moves(player=updated_to_move, game_board=updated_board)
+        # updated_moves = self.compute_moves(player=updated_to_move, game_board=updated_board)
+        updated_moves = self.actions(state=GameState(to_move=updated_to_move, board=updated_board,
+                                                     utility=state.utility, moves=state.moves))
+        # Update the utility using the new board obtained by the specified move according to player who executed it:
+        # updated_utility = self.compute_utility(game_board=updated_board, move=move, player=state.to_move)
+        updated_utility = self.utility(state=GameState(to_move=state.to_move, board=updated_board,
+                                                       utility=state.utility, moves=updated_moves), player=move)
         # Construct a new GameState using all updated state information and return it to the method invoker:
         resultant_state = GameState(to_move=updated_to_move, utility=updated_utility,
                                          board=updated_board, moves=updated_moves)
@@ -199,7 +159,8 @@ class ChopsticksGame(Game):
             else:
                 return 1
 
-        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
+        if (state.board['human'] == tuple((2,4)) or state.board['human'] == tuple((4,2))) \
+                and (state.board['cpu'] == tuple((2,4)) or state.board['cpu'] == tuple((4,2))):
             return 0
         return 0
 
