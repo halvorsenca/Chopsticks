@@ -198,11 +198,6 @@ class ChopsticksGame(Game):
             else:
                 return 1
 
-        #if there is a 2,4 setup for the tie
-        if len(list(set(state.board['human']))) and len(list(set(state.board['cpu']))): #if both players have only one hand left in their hand configuration
-            if (human_sum == 2 and cpu_sum == 4 and state.to_move == 'h') or (human_sum == 4 and cpu_sum == 2 and state.to_move == 'c'):
-                return 0
-
         return 0
 
     def terminal_test(self, state):
