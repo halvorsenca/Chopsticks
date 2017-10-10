@@ -158,9 +158,6 @@ class ChopsticksGame(Game):
             else:
                 return 1
 
- utilityAppend
-        return 0
- master
         return 0
 
     def terminal_test(self, state):
@@ -175,16 +172,18 @@ class ChopsticksGame(Game):
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
 
+        check = tuple((state.board['human'], state.board['cpu']))
+
         #if there is a tie with the 2,4 setup between the two players
         # TODO: Implement tie when state has already been added to explored.
-        if state in self.explored:
+        if check in self.explored:
             return True
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
             return True
         else:
-            self.explored.add(state) #if the state isn't terminal then it should be added only when the game isn't over
+            self.explored.add(check) #if the state isn't terminal then it should be added only when the game isn't over
             return False
 
     def display(self, state):
