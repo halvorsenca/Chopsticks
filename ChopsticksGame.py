@@ -27,6 +27,7 @@ class ChopsticksGame(Game):
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
         self.initial = GameState(to_move='c', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves)
+        self.explored = set()
 
     def actions(self, state):
         """
@@ -141,8 +142,6 @@ class ChopsticksGame(Game):
         :param player:
         :return:
         """
-        #return soemthing for if there eis a tie
-
 
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
@@ -159,9 +158,9 @@ class ChopsticksGame(Game):
             else:
                 return 1
 
-        if (state.board['human'] == tuple((2,4)) or state.board['human'] == tuple((4,2))) \
-                and (state.board['cpu'] == tuple((2,4)) or state.board['cpu'] == tuple((4,2))):
-            return 0
+ utilityAppend
+        return 0
+ master
         return 0
 
     def terminal_test(self, state):
@@ -178,11 +177,14 @@ class ChopsticksGame(Game):
 
         #if there is a tie with the 2,4 setup between the two players
         # TODO: Implement tie when state has already been added to explored.
+        if state in self.explored:
+            return True
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
             return True
         else:
+            self.explored.add(state) #if the state isn't terminal then it should be added only when the game isn't over
             return False
 
     def display(self, state):
