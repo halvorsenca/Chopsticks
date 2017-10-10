@@ -202,6 +202,10 @@ class Game:
         while True:
             for player in players:
                 move = player(self, state)
+                # CLC: Modified to require the player to choose another move if invalid:
+                while move not in state.moves:
+                    print("Invalid move, try again.\n")
+                    move = player(self, state)
                 state = self.result(state, move)
                 if self.terminal_test(state):
                     self.display(state)
