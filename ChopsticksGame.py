@@ -78,40 +78,6 @@ class ChopsticksGame(Game):
             resultant_game_board['cpu'] = tuple(state.board['cpu'])
         return resultant_game_board
 
-    def compute_utility(self, game_board, move, player):
-        """
-        calculate_utility: Helper method for result; same as AIMA implementation. Calculates the utility given the
-            below parameters. Returns 0 regardless of the player if the result is a tie. Returns the utility as a win
-            or a loss dependent upon who is asking for the utility (the player parameter).
-        :param game_board: The gameboard after executing the specified move.
-        :param move: The move made to produce the current gameboard.
-        :param player The player performing the utility calculation.
-        :return utility: The utility of the state resulting from the provided game_board when the provided move is
-            applied; as viewed from the perspective of the provided player.
-        """
-        human_sum = sum(list(game_board['human']))
-        cpu_sum = sum(list(game_board['cpu']))
-
-        if human_sum == 0:
-            # The human has no fingers left.
-            if player == 'h':
-                # The agent requesting the utility calculation is the human.
-                return -1
-            else:
-                # The agent requesting the utility calculation is the cpu.
-                return 1
-        elif cpu_sum == 0:
-            # The cpu has no fingers left.
-            if player == 'h':
-                # The agent requesting the utility calculation is the human.
-                return 1
-            else:
-                # The agent requesting the utility calculation is the cpu.
-                return -1
-        else:
-            # The utility of the state is unknown or a tie.
-            return 0
-
     def compute_moves(self, player, game_board):
         """
         compute_moves: Helper method for a partial GameState in the instantiation process via self.resultant_state().
@@ -166,7 +132,8 @@ class ChopsticksGame(Game):
         # Update the gameboard appropriately:
         updated_board = self.update_game_board(state=state, move=move)
         # Update the utility using the new board obtained by the specified move according to player who executed it:
-        updated_utility = self.compute_utility(game_board=updated_board, move=move, player=state.to_move)
+        # updated_utility = self.compute_utility(game_board=updated_board, move=move, player=state.to_move)
+        updated_utility = self.utility(state=GameState(player=state.to_move, board=updated_board), player=move)
         # Determine which moves are possible in the new state from the new players perspective:
         updated_moves = self.compute_moves(player=updated_to_move, game_board=updated_board)
         # Construct a new GameState using all updated state information and return it to the method invoker:
