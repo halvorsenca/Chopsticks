@@ -181,26 +181,27 @@ class ChopsticksGame(Game):
         :param player:
         :return:
         """
-        if state.to_move == 'h' and player == 'h':
-            if state.board['cpu'] == (0, 0) or state.board['cpu'] == (0,0,0):
-                return 1
-            else:
-                return 0
-        elif state.to_move == 'c' and player == 'h':
-            if state.board['human'] == (0, 0) or state.board['human'] == (0, 0, 0):
+        #return soemthing for if there eis a tie
+
+
+        human_sum = sum(list(state.board['human']))
+        cpu_sum = sum(list(state.board['cpu']))
+
+        if human_sum == 0:
+            if state.to_move == 'h' and player == 'h':
                 return -1
             else:
-                return 0
-        elif state.to_move == 'h' and player == 'c':
-            if state.board['cpu'] == (0, 0) or state.board['cpu'] == (0, 0, 0):
+                return 1
+
+        elif cpu_sum == 0:
+            if state.to_move == 'c' and player == 'c':
                 return -1
             else:
-                return 0
-        elif state.to_move == 'c' and player == 'c':
-            if state.board['human'] == (0, 0) or state.board['human'] == (0, 0, 0):
                 return 1
-            else:
-                return 0
+
+        if (state.board['human'] == tuple(2,4) or state.board['human'] == tuple(4,2)) and (state.board['cpu'] == tuple(2,4) or state.board['cpu'] == tuple(4,2)):
+            return 0
+        return 0
 
     def terminal_test(self, state):
         """
