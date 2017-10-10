@@ -20,7 +20,7 @@ def main(num_hands, num_fingers):
     """
     # Initialize the game by creating an instance of the ChopsticksGame inherited from the Game class:
     chopsticks = ChopsticksGame(num_hands, num_fingers)
-    # Play a game of Chopsticks against a human:
+    # Play a game of Chopsticks against a human (cpu goes first):
     chopsticks.play_game(random_player, query_player)
 
 if __name__ == '__main__':
