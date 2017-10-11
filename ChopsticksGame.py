@@ -6,7 +6,7 @@ test instead of a path cost and a goal test.
 from aima.utils import *
 from aima.games import Game
 from aima.games import GameState
-from copy import deepcopy
+from aima.games import minimax_decision
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -206,3 +206,28 @@ class ChopsticksGame(Game):
             print(game_state)
         else:
             super().display(state=state)
+
+    def minimax_player(self, state):
+        return minimax_decision(game=self, state=state)
+
+    def play_game(self, *players):
+        """
+        play_game: Play an n-person, move-alternating game.
+        :param players: TODO
+        :return: TODO
+        """
+        state = self.initial
+        while True:
+            for player in players:
+                move = player(self, state)
+                # CLC: Modified to require the player to choose another move if invalid:
+                if player == ChopsticksGame.minimax_player:
+                    self.explored = set()
+                while move not in state.moves:
+                    print("Invalid move, try again.\n")
+                    move = player(self, state)
+                state = self.result(state, move)
+                if self.terminal_test(state):
+                    self.display(state)
+                    return self.utility(state, self.to_move(self.initial))
+
