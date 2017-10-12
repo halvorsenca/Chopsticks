@@ -28,6 +28,7 @@ class ChopsticksGame(Game):
         cpu_hands = tuple(1 for i in range(num_hands))
         self.initial = GameState(to_move='c', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves)
         self.explored = set()
+        self.loop = set()
 
     def actions(self, state):
         """
@@ -160,7 +161,7 @@ class ChopsticksGame(Game):
 
         return 0
 
-    def terminal_test(self, state):
+    def terminal_test(self, state, prev):
         """
         terminal_test: Returns whether or not the provided state is a final state for the game.
         :param state:
@@ -173,10 +174,14 @@ class ChopsticksGame(Game):
         cpu_sum = sum(list(state.board['cpu']))
 
         check = tuple((state.board['human'], state.board['cpu']))
-
+        if state.board['cpu'] == tuple((2, 1)) and state.board['human'] == tuple((1, 1)) or state.board['cpu'] == tuple((1, 2)) and state.board['human'] == tuple((1, 1)):
+            self.explored = set()
+        print(self.explored)
         #if there is a tie with the 2,4 setup between the two players
         # TODO: Implement tie when state has already been added to explored.
         if check in self.explored:
+            #self.loop.add(check)
+            #self.explored = self.loop
             return True
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
@@ -227,7 +232,7 @@ class ChopsticksGame(Game):
                     print("Invalid move, try again.\n")
                     move = player(self, state)
                 state = self.result(state, move)
-                if self.terminal_test(state):
+                if self.terminal_test(state, state):
                     self.display(state)
                     return self.utility(state, self.to_move(self.initial))
 
