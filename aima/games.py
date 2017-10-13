@@ -6,7 +6,7 @@ import random
 from aima.utils import argmax
 
 infinity = float('inf')
-GameState = namedtuple('GameState', 'to_move, utility, board, moves')
+GameState = namedtuple('GameState', 'to_move, utility, board, moves, explore')
 
 # ______________________________________________________________________________
 # Minimax Search
