@@ -6,7 +6,6 @@ test instead of a path cost and a goal test.
 from aima.utils import *
 from aima.games import Game
 from aima.games import GameState
-from aima.games import minimax_decision
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -26,8 +25,7 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = GameState(to_move='c', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves)
-        self.explored = set()
+        self.initial = GameState(to_move='c', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves, explore=set())
 
     def actions(self, state):
         """
@@ -110,7 +108,7 @@ class ChopsticksGame(Game):
         """
         # Check to see if the move is invalid (e.g. human player input incapable move)
         if move not in self.actions(state=GameState(to_move=state.to_move, board=state.board,
-                                                    utility=state.utility, moves=state.to_move)):
+                                                    utility=state.utility, moves=state.to_move, explore=state.explore)):
             # An invalid move results in no change to the game state:
             return state
         # Update the to_move field appropriately:
@@ -125,14 +123,14 @@ class ChopsticksGame(Game):
         # Determine which moves are possible in the new state from the new players perspective:
         # updated_moves = self.compute_moves(player=updated_to_move, game_board=updated_board)
         updated_moves = self.actions(state=GameState(to_move=updated_to_move, board=updated_board,
-                                                     utility=state.utility, moves=state.moves))
+                                                     utility=state.utility, moves=state.moves, explore=state.explore))
         # Update the utility using the new board obtained by the specified move according to player who executed it:
         # updated_utility = self.compute_utility(game_board=updated_board, move=move, player=state.to_move)
         updated_utility = self.utility(state=GameState(to_move=state.to_move, board=updated_board,
-                                                       utility=state.utility, moves=updated_moves), player=move)
+                                                       utility=state.utility, moves=updated_moves, explore=state.explore), player=move)
         # Construct a new GameState using all updated state information and return it to the method invoker:
         resultant_state = GameState(to_move=updated_to_move, utility=updated_utility,
-                                         board=updated_board, moves=updated_moves)
+                                         board=updated_board, moves=updated_moves, explore=state.explore)
         return resultant_state
 
     def utility(self, state, player):
@@ -173,17 +171,16 @@ class ChopsticksGame(Game):
         cpu_sum = sum(list(state.board['cpu']))
 
         check = tuple((state.board['human'], state.board['cpu']))
-
         #if there is a tie with the 2,4 setup between the two players
         # TODO: Implement tie when state has already been added to explored.
-        if check in self.explored:
+        print(state.explore)
+        if check in state.explore:
             return True
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
             return True
         else:
-            self.explored.add(check) #if the state isn't terminal then it should be added only when the game isn't over
             return False
 
     def display(self, state):
@@ -208,7 +205,7 @@ class ChopsticksGame(Game):
             super().display(state=state)
 
     def minimax_player(self, state):
-        return minimax_decision(game=self, state=state)
+        return self.minimax_decision(game=self, state=state)
 
     def play_game(self, *players):
         """
@@ -221,8 +218,6 @@ class ChopsticksGame(Game):
             for player in players:
                 move = player(self, state)
                 # CLC: Modified to require the player to choose another move if invalid:
-                if player == ChopsticksGame.minimax_player:
-                    self.explored = set()
                 while move not in state.moves:
                     print("Invalid move, try again.\n")
                     move = player(self, state)
@@ -231,3 +226,32 @@ class ChopsticksGame(Game):
                     self.display(state)
                     return self.utility(state, self.to_move(self.initial))
 
+    def minimax_decision(self, state, game):
+        """Given a state in a game, calculate the best move by searching
+        forward all the way to the terminal states. [Figure 5.3]"""
+
+        player = game.to_move(state)
+        infinity = float('inf')
+        def max_value(state):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            check = tuple((state.board['human'], state.board['cpu']))
+            ex = state.explore.add(check)
+            explore_new = GameState(to_move=state.to_move, utility=state.utility,
+                                         board=state.board, moves=state.moves, explore=ex)
+            v = -infinity
+            for a in game.actions(explore_new):
+                v = max(v, min_value(game.result(explore_new, a)))
+            return v
+
+        def min_value(state):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            check = tuple((state.board['human'], state.board['cpu']))
+            ex = state.explore.add(check)
+            explore_new = GameState(to_move=state.to_move, utility=state.utility,
+                                         board=state.board, moves=state.moves, explore=ex)
+            v = infinity
+            for a in game.actions(explore_new):
+                v = min(v, max_value(game.result(explore_new, a)))
+            return v
