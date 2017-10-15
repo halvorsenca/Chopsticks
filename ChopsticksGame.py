@@ -77,7 +77,7 @@ class ChopsticksGame(Game):
             # It is the human's turn to move:
             # Update the finger count on the appropriate hand:
             cpu_updated_to_hand = ((state.board['cpu'][to_hand]
-                                    + state.board['human'][from_hand]) % 5)
+                                    + state.board['human'][from_hand]) % self.num_fingers)
             # Tuples are immutable so we need a temporary list to modify.
             temp_cpu_hand = list(state.board['cpu'])
             # Iterate through each hand and update the appropriate one:
@@ -91,7 +91,7 @@ class ChopsticksGame(Game):
             # It is the computer's turn to move:
             # Update the finger count on the appropriate hand:
             human_updated_to_hand = ((state.board['human'][to_hand]
-                                      + state.board['cpu'][from_hand]) % 5)
+                                      + state.board['cpu'][from_hand]) % self.num_fingers)
             # Tuples are immutable so we need a temporary list to modify.
             temp_human_hand = list(state.board['human'])
             # Iterate through each hand and update the appropriate one:
