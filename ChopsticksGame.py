@@ -6,7 +6,6 @@ test instead of a path cost and a goal test.
 from aima.utils import *
 from aima.games import Game
 from ChopsticksGameState import ChopsticksGameState
-from aima.games import minimax_decision
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -27,7 +26,7 @@ class ChopsticksGame(Game):
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
         self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands},
-                                              moves=moves, last_move=None)
+                                           moves=moves, last_move=None, prev_moves=set())
         self.explored = set()
         self.explored.add(self.initial)
 
@@ -125,7 +124,7 @@ class ChopsticksGame(Game):
         # First create a new GameState with the updated board, and the updated player:
         partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
                                                           utility=state.utility, moves=state.moves,
-                                                          last_move=state.last_move)
+                                                          last_move=state.last_move, prev_moves=state.prev_moves)
         # Now use that partially updated GameState to generate the list of possible moves in that state:
         updated_moves = self.actions(state=partially_updated_gamestate)
         ''' Update the utility of the gamestate in accordance to the player who invoked the method: '''
@@ -139,11 +138,11 @@ class ChopsticksGame(Game):
         updated_last_move = move
         partially_updated_gamestate = ChopsticksGameState(to_move=state.to_move, board=updated_board,
                                                 utility=state.utility, moves=updated_moves,
-                                                last_move=updated_last_move)
+                                                last_move=updated_last_move, prev_moves=state.prev_moves)
         updated_utility = self.utility(state=partially_updated_gamestate, player=move)
         ''' Finally we can construct a new GameState using all updated state information and return it: '''
         resultant_state = ChopsticksGameState(to_move=updated_to_move, utility=updated_utility,
-                                    board=updated_board, moves=updated_moves, last_move=updated_last_move)
+                                    board=updated_board, moves=updated_moves, last_move=updated_last_move, prev_moves=state.prev_moves)
         return resultant_state
 
     def utility(self, state, player):
@@ -158,16 +157,10 @@ class ChopsticksGame(Game):
         cpu_sum = sum(list(state.board['cpu']))
 
         if human_sum == 0:
-            if state.to_move == 'h' and player == 'h':
-                return -1
-            else:
-                return 1
+            return 1
 
         elif cpu_sum == 0:
-            if state.to_move == 'c' and player == 'c':
-                return -1
-            else:
-                return 1
+            return -1
 
         return 0
 
@@ -178,14 +171,15 @@ class ChopsticksGame(Game):
         :return:
         """
 
-        #if we have been there before it would be a terminal and would utility to 0
+        # if we have been there before it would be a terminal and would utility to 0
 
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
 
-        #if there is a tie with the 2,4 setup between the two players
+        check = tuple((state.board['human'], state.board['cpu']))
+        # if there is a tie with the 2,4 setup between the two players
         # TODO: Implement tie when state has already been added to explored.
-        if state in self.explored:
+        if check in state.prev_moves:
             return True
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
@@ -193,7 +187,8 @@ class ChopsticksGame(Game):
             return True
         else:
             # If the state isn't terminal then it should be added only when the game isn't over
-            self.explored.add(state)
+            # self.explored.add(state)
+
             return False
 
     def display(self, state):
@@ -218,7 +213,7 @@ class ChopsticksGame(Game):
             super().display(state=state)
 
     def minimax_player(self, state):
-        return minimax_decision(game=self, state=state)
+        return self.minimax_decision(game=self, state=state)
 
     def play_game(self, *players):
         """
@@ -241,3 +236,35 @@ class ChopsticksGame(Game):
                     self.display(state)
                     return self.utility(state, self.to_move(self.initial))
 
+    def minimax_decision(self, state, game):
+        """Given a state in a game, calculate the best move by searching
+        forward all the way to the terminal states. [Figure 5.3]"""
+
+        player = game.to_move(state)
+        infinity = float('inf')
+        def max_value(state):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            newState = game.update_my(state)
+            v = -infinity
+            for a in game.actions(newState):
+                v = max(v, min_value(game.result(newState, a)))
+            return v
+
+        def min_value(state):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            newState = game.update_my(state)
+            v = infinity
+            for a in game.actions(newState):
+                v = min(v, max_value(game.result(newState, a)))
+            return v
+
+        # Body of minimax_decision:
+        return argmax(game.actions(state),
+                      key=lambda a: min_value(game.result(state, a)))
+
+    def update_my(self, state):
+        state.prev_moves.add(tuple((state.board['human'], state.board['cpu'])))
+        return ChopsticksGameState(to_move=state.to_move, board=state.board, utility=state.utility, moves=state.moves,
+                                   last_move=state.last_move, prev_moves=state.prev_moves)
