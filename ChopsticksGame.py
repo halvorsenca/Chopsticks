@@ -26,7 +26,7 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': (1,3), 'cpu': (2,2)},
+        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands},
                                               moves=moves, last_move=None)
         self.explored = set()
         self.explored.add(self.initial)
@@ -157,41 +157,37 @@ class ChopsticksGame(Game):
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
         if player == 'c':
+            if human_sum == 0:
+                # It is even better to win the game:
+                return 2
+            if cpu_sum == 0:
+                    # It is really bad to lose the game.
+                return -2
+            if state.board['human'][0] == 0 or state.board['human'][1] == 0:
+                    # It is good to eliminate the opponent's hand:
+                return 1
             # The player is the computer.
             if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
                 # It is bad to lose either hand.
                 return -1
             else:
-                if cpu_sum == 0:
-                    # It is really bad to lose the game.
-                    return -2
-                if state.board['human'][0] == 0 or state.board['human'][1] == 0:
-                    # It is good to eliminate the opponent's hand:
-                    return 1
-                else:
-                    if human_sum == 0:
-                        # It is even better to win the game:
-                        return 2
-                    else:
-                        return 0
+                return 0
         else:
+            if cpu_sum == 0:
+                # It is even better to win the game:
+                return 2
+            if human_sum == 0:
+                # It is really bad to lose the game.
+                return -2
+            if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
+                # It is good to eliminate the opponent's hand:
+                return 1
             # The player is the human.
             if state.board['human'][0] == 0 or state.board['human'][1] == 0:
                 # It is bad to lose either hand.
                 return -1
             else:
-                if human_sum == 0:
-                    # It is really bad to lose the game.
-                    return -2
-                if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
-                    # It is good to eliminate the opponent's hand:
-                    return 1
-                else:
-                    if cpu_sum == 0:
-                        # It is even better to win the game:
-                        return 2
-                    else:
-                        return 0
+                return 0
 
 
     def terminal_test(self, state):
