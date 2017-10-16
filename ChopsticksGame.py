@@ -26,7 +26,7 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands},
+        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': (1,3), 'cpu': (2,2)},
                                               moves=moves, last_move=None)
         self.explored = set()
         self.explored.add(self.initial)
@@ -140,7 +140,7 @@ class ChopsticksGame(Game):
         partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
                                                 utility=state.utility, moves=updated_moves,
                                                 last_move=updated_last_move)
-        updated_utility = self.utility(state=partially_updated_gamestate, player=updated_to_move)
+        updated_utility = self.utility(state=partially_updated_gamestate, player=state.to_move)
         ''' Finally we can construct a new GameState using all updated state information and return it: '''
         resultant_state = ChopsticksGameState(to_move=updated_to_move, utility=updated_utility,
                                     board=updated_board, moves=updated_moves, last_move=updated_last_move)
