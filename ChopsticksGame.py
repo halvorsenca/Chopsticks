@@ -157,25 +157,41 @@ class ChopsticksGame(Game):
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
         if player == 'c':
+            # The player is the computer.
             if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
+                # It is bad to lose either hand.
                 return -1
             else:
                 if cpu_sum == 0:
+                    # It is really bad to lose the game.
                     return -2
-                elif human_sum == 0:
+                if state.board['human'][0] == 0 or state.board['human'][1] == 0:
+                    # It is good to eliminate the opponent's hand:
                     return 1
                 else:
-                    return 0
+                    if human_sum == 0:
+                        # It is even better to win the game:
+                        return 2
+                    else:
+                        return 0
         else:
+            # The player is the human.
             if state.board['human'][0] == 0 or state.board['human'][1] == 0:
+                # It is bad to lose either hand.
                 return -1
             else:
                 if human_sum == 0:
+                    # It is really bad to lose the game.
                     return -2
-                elif cpu_sum == 0:
+                if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
+                    # It is good to eliminate the opponent's hand:
                     return 1
                 else:
-                    return 0
+                    if cpu_sum == 0:
+                        # It is even better to win the game:
+                        return 2
+                    else:
+                        return 0
 
 
     def terminal_test(self, state):
