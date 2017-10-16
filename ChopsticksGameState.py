@@ -10,13 +10,15 @@ class ChopsticksGameState:
     moves = None
     last_move = None
     _hashed_value = None
+    count = 0
 
-    def __init__(self, to_move, utility, board, moves, last_move):
+    def __init__(self, to_move, utility, board, moves, last_move, count):
         self.to_move = to_move
         self.utility = utility
         self.board = board
         self.moves = moves
         self.last_move = last_move
+        self.count = count
 
     def __hash__(self):
         if self._hashed_value is None:

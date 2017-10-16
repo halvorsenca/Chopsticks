@@ -26,8 +26,8 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': (4,1,1), 'cpu': (1,4,1)},
-                                              moves=moves, last_move=None)
+        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands},
+                                              moves=moves, last_move=None, count=0)
         self.explored = set()
         self.explored.add(self.initial)
 
@@ -125,7 +125,7 @@ class ChopsticksGame(Game):
         # First create a new GameState with the updated board, and the updated player:
         partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
                                                           utility=state.utility, moves=state.moves,
-                                                          last_move=state.last_move)
+                                                          last_move=state.last_move, count=state.count)
         # Now use that partially updated GameState to generate the list of possible moves in that state:
         updated_moves = self.actions(state=partially_updated_gamestate)
         ''' Update the utility of the gamestate in accordance to the player who invoked the method: '''
@@ -139,11 +139,11 @@ class ChopsticksGame(Game):
         updated_last_move = move
         partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
                                                 utility=state.utility, moves=updated_moves,
-                                                last_move=updated_last_move)
+                                                last_move=updated_last_move, count=state.count)
         updated_utility = self.utility(state=partially_updated_gamestate, player=state.to_move)
         ''' Finally we can construct a new GameState using all updated state information and return it: '''
         resultant_state = ChopsticksGameState(to_move=updated_to_move, utility=updated_utility,
-                                    board=updated_board, moves=updated_moves, last_move=updated_last_move)
+                                    board=updated_board, moves=updated_moves, last_move=updated_last_move, count=state.count+1)
         return resultant_state
 
     def utility(self, state, player):
@@ -237,7 +237,8 @@ class ChopsticksGame(Game):
         # TODO: Implement tie when state has already been added to explored.
         if state in self.explored:
             return True
-
+        if state.count == 50:
+            return True
         #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
             return True
