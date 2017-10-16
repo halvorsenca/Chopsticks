@@ -137,10 +137,10 @@ class ChopsticksGame(Game):
         #       updated_board here because the method invoker wishes to judge the utility of the resultant gamestate.
         #       The same logic follows for the updated_moves and the updated_last_move.
         updated_last_move = move
-        partially_updated_gamestate = ChopsticksGameState(to_move=state.to_move, board=updated_board,
+        partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
                                                 utility=state.utility, moves=updated_moves,
                                                 last_move=updated_last_move)
-        updated_utility = self.utility(state=partially_updated_gamestate, player=move)
+        updated_utility = self.utility(state=partially_updated_gamestate, player=updated_to_move)
         ''' Finally we can construct a new GameState using all updated state information and return it: '''
         resultant_state = ChopsticksGameState(to_move=updated_to_move, utility=updated_utility,
                                     board=updated_board, moves=updated_moves, last_move=updated_last_move)
@@ -156,20 +156,27 @@ class ChopsticksGame(Game):
 
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
-
-        if human_sum == 0:
-            if state.to_move == 'h' and player == 'h':
+        if player == 'c':
+            if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
                 return -1
             else:
-                return 1
-
-        elif cpu_sum == 0:
-            if state.to_move == 'c' and player == 'c':
+                if cpu_sum == 0:
+                    return -2
+                elif human_sum == 0:
+                    return 1
+                else:
+                    return 0
+        else:
+            if state.board['human'][0] == 0 or state.board['human'][1] == 0:
                 return -1
             else:
-                return 1
+                if human_sum == 0:
+                    return -2
+                elif cpu_sum == 0:
+                    return 1
+                else:
+                    return 0
 
-        return 0
 
     def terminal_test(self, state):
         """
