@@ -3,10 +3,11 @@ ChopsticksGame.py
 A subclass of aima's Game class. A game is similar to a problem, but it has a utility for each state and a terminal
 test instead of a path cost and a goal test.
 """
-from aima.utils import *
 from aima.games import Game
-from ChopsticksGameState import ChopsticksGameState
 from aima.games import minimax_decision
+from aima.utils import *
+
+from ChopsticksGameState import ChopsticksGameState
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -18,7 +19,7 @@ class ChopsticksGame(Game):
     """
     initial = None
 
-    def __init__(self, num_hands=2, num_fingers=5):
+    def __init__(self, num_hands=2, num_fingers=5, init_cpu_hands=(1,1), init_human_hands=(1,1)):
         # self.initial = {'human': (1,1), 'cpu':(1,1), 'turn': 'h'}
         self.num_hands = num_hands
         self.num_fingers = num_fingers
@@ -26,7 +27,7 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands},
+        self.initial = ChopsticksGameState(to_move='c', utility=0, board={'human': init_cpu_hands, 'cpu': init_human_hands},
                                               moves=moves, last_move=None, count=0)
         self.explored = set()
         self.explored.add(self.initial)
