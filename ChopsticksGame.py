@@ -7,6 +7,9 @@ from aima.utils import *
 from aima.games import Game
 from ChopsticksGameState import ChopsticksGameState
 from aima.games import minimax_decision
+from aima.utils import argmax
+
+infinity = float('inf')
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -159,32 +162,18 @@ class ChopsticksGame(Game):
         if player == 'c':
             if human_sum == 0:
                 # It is even better to win the game:
-                return 2
+                return 1
             if cpu_sum == 0:
                     # It is really bad to lose the game.
-                return -2
-            if state.board['human'][0] == 0 or state.board['human'][1] == 0:
-                    # It is good to eliminate the opponent's hand:
-                return 1
-            # The player is the computer.
-            if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
-                # It is bad to lose either hand.
                 return -1
             else:
                 return 0
         else:
             if cpu_sum == 0:
                 # It is even better to win the game:
-                return 2
+                return 1
             if human_sum == 0:
                 # It is really bad to lose the game.
-                return -2
-            if state.board['cpu'][0] == 0 or state.board['cpu'][1] == 0:
-                # It is good to eliminate the opponent's hand:
-                return 1
-            # The player is the human.
-            if state.board['human'][0] == 0 or state.board['human'][1] == 0:
-                # It is bad to lose either hand.
                 return -1
             else:
                 return 0
@@ -260,3 +249,28 @@ class ChopsticksGame(Game):
                     self.display(state)
                     return self.utility(state, self.to_move(self.initial))
 
+    def minimax_decision(state, game):
+        """Given a state in a game, calculate the best move by searching
+        forward all the way to the terminal states. [Figure 5.3]"""
+
+        player = game.to_move(state)
+
+        def max_value(state, explored):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            v = -infinity
+            for a in game.actions(state):
+                v = max(v, min_value(game.result(state, a), explored.copy()))
+            return v
+
+        def min_value(state, explored):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            v = infinity
+            for a in game.actions(state):
+                v = min(v, max_value(game.result(state, a), explored.copy()))
+            return v
+
+        # Body of minimax_decision:
+        return argmax(game.actions(state),
+                      key=lambda a: min_value(game.result(state, a), game.explored))
