@@ -5,8 +5,11 @@ test instead of a path cost and a goal test.
 """
 from aima.utils import *
 from aima.games import Game
-from aima.games import GameState
+from ChopsticksGameState import ChopsticksGameState
 from aima.games import minimax_decision
+from aima.utils import argmax
+
+infinity = float('inf')
 
 __author__ = "Chris Campell"
 __version__ = "10/3/2017"
@@ -26,8 +29,10 @@ class ChopsticksGame(Game):
         moves = [(from_hand, to_hand) for from_hand in range(0, num_hands) for to_hand in range(0, num_hands)]
         human_hands = tuple(1 for i in range(num_hands))
         cpu_hands = tuple(1 for i in range(num_hands))
-        self.initial = GameState(to_move='c', utility=0, board={'human': human_hands, 'cpu': cpu_hands}, moves=moves)
+        self.initial = ChopsticksGameState(to_move='h', utility=0, board={'human': human_hands, 'cpu': cpu_hands},
+                                              moves=moves, last_move=None)
         self.explored = set()
+        self.explored.add(self.initial)
 
     def actions(self, state):
         """
@@ -75,7 +80,7 @@ class ChopsticksGame(Game):
             # It is the human's turn to move:
             # Update the finger count on the appropriate hand:
             cpu_updated_to_hand = ((state.board['cpu'][to_hand]
-                                    + state.board['human'][from_hand]) % 5)
+                                    + state.board['human'][from_hand]) % self.num_fingers)
             # Tuples are immutable so we need a temporary list to modify.
             temp_cpu_hand = list(state.board['cpu'])
             # Iterate through each hand and update the appropriate one:
@@ -89,7 +94,7 @@ class ChopsticksGame(Game):
             # It is the computer's turn to move:
             # Update the finger count on the appropriate hand:
             human_updated_to_hand = ((state.board['human'][to_hand]
-                                      + state.board['cpu'][from_hand]) % 5)
+                                      + state.board['cpu'][from_hand]) % self.num_fingers)
             # Tuples are immutable so we need a temporary list to modify.
             temp_human_hand = list(state.board['human'])
             # Iterate through each hand and update the appropriate one:
@@ -109,30 +114,39 @@ class ChopsticksGame(Game):
         :return resultant_state: The GameState resulting from the given move.
         """
         # Check to see if the move is invalid (e.g. human player input incapable move)
-        if move not in self.actions(state=GameState(to_move=state.to_move, board=state.board,
-                                                    utility=state.utility, moves=state.to_move)):
+        if move not in self.actions(state=state):
             # An invalid move results in no change to the game state:
             return state
-        # Update the to_move field appropriately:
-        # After this function is done executing, it will be the other players turn:
-        updated_to_move = None
+        ''' Update the gameboard by applying the specified move to the provided state: '''
+        updated_board = self.update_game_board(state=state, move=move)
+        ''' Update the to_move field in the resultant state as it is now the other player's turn: '''
         if state.to_move == 'h':
             updated_to_move = 'c'
         else:
             updated_to_move = 'h'
-        # Update the gameboard appropriately:
-        updated_board = self.update_game_board(state=state, move=move)
-        # Determine which moves are possible in the new state from the new players perspective:
-        # updated_moves = self.compute_moves(player=updated_to_move, game_board=updated_board)
-        updated_moves = self.actions(state=GameState(to_move=updated_to_move, board=updated_board,
-                                                     utility=state.utility, moves=state.moves))
-        # Update the utility using the new board obtained by the specified move according to player who executed it:
-        # updated_utility = self.compute_utility(game_board=updated_board, move=move, player=state.to_move)
-        updated_utility = self.utility(state=GameState(to_move=state.to_move, board=updated_board,
-                                                       utility=state.utility, moves=updated_moves), player=move)
-        # Construct a new GameState using all updated state information and return it to the method invoker:
-        resultant_state = GameState(to_move=updated_to_move, utility=updated_utility,
-                                         board=updated_board, moves=updated_moves)
+        ''' Update the available moves/actions in the resultant state from the perspective of the updated player: '''
+        # First create a new GameState with the updated board, and the updated player:
+        partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
+                                                          utility=state.utility, moves=state.moves,
+                                                          last_move=state.last_move)
+        # Now use that partially updated GameState to generate the list of possible moves in that state:
+        updated_moves = self.actions(state=partially_updated_gamestate)
+        ''' Update the utility of the gamestate in accordance to the player who invoked the method: '''
+        # Note: The utility is updated according to the initial state, because this method may be called only as a
+        #       lookahead. If this is indeed the case, the method invoker is the player who's perspective the utility
+        #       calculation aught be performed from.
+        # We must rebuild the partially updated GameState in order to perform a utility calculation. Per the above note
+        #       it is the player who invoked this method's turn to move when updating the utility. Yet we use the
+        #       updated_board here because the method invoker wishes to judge the utility of the resultant gamestate.
+        #       The same logic follows for the updated_moves and the updated_last_move.
+        updated_last_move = move
+        partially_updated_gamestate = ChopsticksGameState(to_move=updated_to_move, board=updated_board,
+                                                utility=state.utility, moves=updated_moves,
+                                                last_move=updated_last_move)
+        updated_utility = self.utility(state=partially_updated_gamestate, player=state.to_move)
+        ''' Finally we can construct a new GameState using all updated state information and return it: '''
+        resultant_state = ChopsticksGameState(to_move=updated_to_move, utility=updated_utility,
+                                    board=updated_board, moves=updated_moves, last_move=updated_last_move)
         return resultant_state
 
     def utility(self, state, player):
@@ -145,20 +159,25 @@ class ChopsticksGame(Game):
 
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
-
-        if human_sum == 0:
-            if state.to_move == 'h' and player == 'h':
+        if player == 'c':
+            if human_sum == 0:
+                # It is even better to win the game:
+                return 1
+            if cpu_sum == 0:
+                    # It is really bad to lose the game.
                 return -1
             else:
+                return 0
+        else:
+            if cpu_sum == 0:
+                # It is even better to win the game:
                 return 1
-
-        elif cpu_sum == 0:
-            if state.to_move == 'c' and player == 'c':
+            if human_sum == 0:
+                # It is really bad to lose the game.
                 return -1
             else:
-                return 1
+                return 0
 
-        return 0
 
     def terminal_test(self, state):
         """
@@ -172,22 +191,21 @@ class ChopsticksGame(Game):
         human_sum = sum(list(state.board['human']))
         cpu_sum = sum(list(state.board['cpu']))
 
-        check = tuple((state.board['human'], state.board['cpu']))
-
         #if there is a tie with the 2,4 setup between the two players
         # TODO: Implement tie when state has already been added to explored.
-        if check in self.explored:
+        if state in self.explored:
             return True
 
         #if either of the tuples is a 0 meaning the end of the game with a winner
         if human_sum == 0 or cpu_sum == 0:
             return True
         else:
-            self.explored.add(check) #if the state isn't terminal then it should be added only when the game isn't over
+            # If the state isn't terminal then it should be added only when the game isn't over
+            self.explored.add(state)
             return False
 
     def display(self, state):
-        if isinstance(state, GameState):
+        if isinstance(state, ChopsticksGameState):
             human_readable_moves = []
             for i, j in state.moves:
                 from_hand = None
@@ -201,8 +219,8 @@ class ChopsticksGame(Game):
                 else:
                     to_hand = 'R'
                 human_readable_moves.append((from_hand, to_hand))
-            game_state = 'to_move=%s, utility=%d, board=%s, moves of form (from_my, to_opponent)=%s' \
-                         % (state.to_move, state.utility, state.board, human_readable_moves)
+            game_state = 'to_move=%s, utility=%d, board=%s, moves of form (from_my, to_opponent)=%s, last_move=%s' \
+                         % (state.to_move, state.utility, state.board, human_readable_moves, state.last_move)
             print(game_state)
         else:
             super().display(state=state)
@@ -231,3 +249,28 @@ class ChopsticksGame(Game):
                     self.display(state)
                     return self.utility(state, self.to_move(self.initial))
 
+    def minimax_decision(state, game):
+        """Given a state in a game, calculate the best move by searching
+        forward all the way to the terminal states. [Figure 5.3]"""
+
+        player = game.to_move(state)
+
+        def max_value(state, explored):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            v = -infinity
+            for a in game.actions(state):
+                v = max(v, min_value(game.result(state, a), explored.copy()))
+            return v
+
+        def min_value(state, explored):
+            if game.terminal_test(state):
+                return game.utility(state, player)
+            v = infinity
+            for a in game.actions(state):
+                v = min(v, max_value(game.result(state, a), explored.copy()))
+            return v
+
+        # Body of minimax_decision:
+        return argmax(game.actions(state),
+                      key=lambda a: min_value(game.result(state, a), game.explored))
